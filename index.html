@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Babu OYO Hotel - Premium Room Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .room-card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .room-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .booking-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        
+        .booking-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .search-container {
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+        }
+        
+        .amenity-icon {
+            width: 20px;
+            height: 20px;
+            color: #10b981;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-hotel text-3xl"></i>
+                    <h1 class="text-2xl font-bold">Babu OYO Hotel</h1>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#rooms" class="hover:text-yellow-300 transition">Rooms</a>
+                    <a href="#amenities" class="hover:text-yellow-300 transition">Amenities</a>
+                    <a href="#contact" class="hover:text-yellow-300 transition">Contact</a>
+                    <button class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-user mr-2"></i>Login
+                    </button>
+                </nav>
+                <button class="md:hidden" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0">
+            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/f8c9fc43-e5f2-4191-b8e1-735ed17e75fb.png" alt="Modern Indian hotel room with clean white walls, wood paneling, multiple beds with colorful geometric orange circle pattern bedsheets, ceiling fan, entertainment unit with TV and Hindu religious artwork" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+        </div>
+        
+        <div class="relative z-10 text-center text-white px-4">
+            <h2 class="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">Welcome to Babu OYO</h2>
+            <p class="text-xl md:text-2xl mb-8 animate-fade-in">Comfortable stays at affordable prices in the heart of Chandigarh</p>
+            <button onclick="scrollToRooms()" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-4 px-8 rounded-full text-lg transition transform hover:scale-105">
+                <i class="fas fa-bed mr-2"></i>Book Your Stay
+            </button>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-container py-8 -mt-16 relative z-20">
+        <div class="container mx-auto px-4">
+            <div class="glass-effect rounded-2xl p-6 max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <div>
+                        <label class="block text-white text-sm font-semibold mb-2">Check-in</label>
+                        <input type="date" id="checkinDate" class="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-yellow-500" min="">
+                    </div>
+                    <div>
+                        <label class="block text-white text-sm font-semibold mb-2">Check-out</label>
+                        <input type="date" id="checkoutDate" class="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-yellow-500" min="">
+                    </div>
+                    <div>
+                        <label class="block text-white text-sm font-semibold mb-2">Guests</label>
+                        <select id="guestCount" class="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-yellow-500">
+                            <option value="1">1 Guest</option>
+                            <option value="2">2 Guests</option>
+                            <option value="3">3 Guests</option>
+                            <option value="4">4 Guests</option>
+                            <option value="5">5+ Guests</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-white text-sm font-semibold mb-2">Room Type</label>
+                        <select id="roomType" class="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-yellow-500">
+                            <option value="">All Rooms</option>
+                            <option value="standard">Standard</option>
+                            <option value="deluxe">Deluxe</option>
+                            <option value="suite">Suite</option>
+                            <option value="premium">Premium</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="searchRooms()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-6 rounded-lg transition transform hover:scale-105">
+                            <i class="fas fa-search mr-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rooms Section -->
+    <section id="rooms" class="py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">Our Comfortable Rooms</h2>
+            
+            <div id="roomsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Room cards will be dynamically generated here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Amenities Section -->
+    <section id="amenities" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">Hotel Amenities</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                    <i class="fas fa-wifi text-4xl text-blue-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Free WiFi</h3>
+                    <p class="text-gray-600">High-speed internet throughout the hotel</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                    <i class="fas fa-car text-4xl text-red-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Parking</h3>
+                    <p class="text-gray-600">Complimentary parking for guests</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                    <i class="fas fa-concierge-bell text-4xl text-green-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Room Service</h3>
+                    <p class="text-gray-600">24/7 room service available</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-xl shadow-lg">
+                    <i class="fas fa-shield-alt text-4xl text-purple-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Security</h3>
+                    <p class="text-gray-600">24/7 security and CCTV surveillance</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="booking-modal">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 relative">
+            <button onclick="closeBookingModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+            
+            <h3 class="text-2xl font-bold mb-6 text-gray-800">Book Your Room</h3>
+            
+            <form id="bookingForm" onsubmit="submitBooking(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
+                    <input type="text" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500" placeholder="Enter your full name">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <input type="email" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500" placeholder="Enter your email">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Phone</label>
+                    <input type="tel" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500" placeholder="Enter your phone number">
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Special Requests</label>
+                    <textarea class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-yellow-500" rows="3" placeholder="Any special requests or preferences"></textarea>
+                </div>
+                
+                <div id="bookingDetails" class="mb-6 p-4 bg-gray-100 rounded-lg">
+                    <!-- Booking details will be populated here -->
+                </div>
+                
+                <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-6 rounded-lg transition">
+                    <i class="fas fa-credit-card mr-2"></i>Confirm Booking
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Babu OYO Hotel</h3>
+                    <p class="text-gray-300">Comfortable and affordable accommodation in Chandigarh.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact Info</h4>
+                    <p class="text-gray-300 mb-2"><i class="fas fa-map-marker-alt mr-2"></i>Sector 19C, Chandigarh 160019</p>
+                    <p class="text-gray-300 mb-2"><i class="fas fa-phone mr-2"></i>+91 99887 76655</p>
+                    <p class="text-gray-300"><i class="fas fa-envelope mr-2"></i>info@babuoyo.com</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="text-gray-300 space-y-2">
+                        <li><a href="#rooms" class="hover:text-yellow-300">Rooms</a></li>
+                        <li><a href="#amenities" class="hover:text-yellow-300">Amenities</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Services</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">About Us</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Follow Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-300 hover:text-yellow-300"><i class="fab fa-facebook text-2xl"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-yellow-300"><i class="fab fa-twitter text-2xl"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-yellow-300"><i class="fab fa-instagram text-2xl"></i></a>
+                        <a href="#" class="text-gray-300 hover:text-yellow-300"><i class="fab fa-linkedin text-2xl"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Developer Credits -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Credits</h4>
+                    <div class="text-gray-300 space-y-2">
+                        <p><i class="fas fa-code mr-2"></i><strong>Developer:</strong><br>Ashish Yadav</p>
+                        <p><i class="fas fa-paint-brush mr-2"></i><strong>Designer:</strong><br>Pranav</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
+                <p>© 2024 Babu OYO Hotel. All rights reserved.</p>
+                <p class="mt-2 text-sm">Developed by Ashish Yadav | Designed by Pranav</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Room data with Indian prices and realistic Indian room photos
+        const rooms = [
+            {
+                id: 1,
+                name: "Standard Room",
+                type: "standard",
+                price: 599,
+                capacity: 2,
+                size: "200 sq ft",
+                image: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/347779f8-2f3d-4e14-9058-e7ceacfc5c63.png",
+                alt: "Standard Indian hotel room with clean white walls, wood paneling on lower half, multiple beds with orange geometric circle pattern bedsheets, ceiling fan, fluorescent lighting, white wardrobes and clean tile flooring",
+                amenities: ["Free WiFi", "Air Conditioning", "TV", "Attached Bathroom"],
+                description: "Comfortable and affordable standard room with all essential amenities for a pleasant stay."
+            },
+            {
+                id: 2,
+                name: "Deluxe Room",
+                type: "deluxe",
+                price: 899,
+                capacity: 2,
+                size: "250 sq ft",
+                image: "https://placehold.co/600x400",
+                alt: "Deluxe Indian hotel room with modern white walls, elegant wood paneling, comfortable beds featuring vibrant orange circle pattern bedding, entertainment center with TV, Hindu religious artwork, ceiling fan and premium white storage",
+                amenities: ["Free WiFi", "Air Conditioning", "TV", "Attached Bathroom", "Work Desk", "Mini Fridge"],
+                description: "Spacious deluxe room with enhanced amenities and comfortable furnishings."
+            },
+            {
+                id: 3,
+                name: "Premium Room",
+                type: "premium",
+                price: 1299,
+                capacity: 3,
+                size: "300 sq ft",
+                image: "https://placehold.co/600x400",
+                alt: "Premium Indian hotel room with spacious layout, pristine white walls with wood paneling, multiple beds in colorful geometric orange patterns, modern entertainment unit, religious decor, ceiling fan and extensive white storage cabinets",
+                amenities: ["Free WiFi", "Air Conditioning", "TV", "Attached Bathroom", "Work Desk", "Mini Fridge", "Sitting Area"],
+                description: "Premium room with extra space and upgraded amenities for enhanced comfort."
+            },
+            {
+                id: 4,
+                name: "Family Room",
+                type: "suite",
+                price: 1599,
+                capacity: 4,
+                size: "400 sq ft",
+                image: "https://placehold.co/600x400",
+                alt: "Spacious Indian family room with bright white walls, elegant wood paneling, multiple comfortable beds with traditional orange circle pattern bedsheets, entertainment area with TV and religious artwork, ceiling fan, ample white wardrobes and polished tile floors",
+                amenities: ["Free WiFi", "Air Conditioning", "TV", "Attached Bathroom", "Work Desk", "Mini Fridge", "Sitting Area", "Extra Bed"],
+                description: "Spacious family room perfect for families with multiple beds and extra space."
+            },
+            {
+                id: 5,
+                name: "Executive Suite",
+                type: "suite",
+                price: 1999,
+                capacity: 4,
+                size: "500 sq ft",
+                image: "https://placehold.co/600x400",
+                alt: "Luxurious executive Indian hotel suite with premium white walls and wood paneling, elegant beds in vibrant orange geometric patterns, modern entertainment center with TV, Hindu religious wall art, ceiling fan, extensive white storage and pristine tile flooring",
+                amenities: ["Free WiFi", "Air Conditioning", "TV", "Attached Bathroom", "Work Desk", "Mini Fridge", "Sitting Area", "Balcony", "Kitchenette"],
+                description: "Luxurious executive suite with separate living area and premium amenities."
+            },
+            {
+                id: 6,
+                name: "Budget Room",
+                type: "standard",
+                price: 499,
+                capacity: 2,
+                size: "180 sq ft",
+                image: "https://placehold.co/600x400",
+                alt: "Budget-friendly Indian hotel room with clean white walls, basic wood paneling, simple beds with colorful orange pattern bedding, ceiling fan, basic entertainment setup with TV, minimal white storage and clean tile floors for value-conscious travelers",
+                amenities: ["Free WiFi", "Fan", "TV", "Shared Bathroom"],
+                description: "Budget-friendly room with basic amenities at an affordable price."
+            }
+        ];
+
+        let selectedRoom = null;
+        let filteredRooms = [...rooms];
+
+        // Initialize the website
+        document.addEventListener('DOMContentLoaded', function() {
+            displayRooms(rooms);
+            setMinDates();
+        });
+
+        // Set minimum dates for check-in and check-out
+        function setMinDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('checkinDate').min = today;
+            document.getElementById('checkoutDate').min = today;
+            
+            // Set default dates
+            const checkin = new Date();
+            const checkout = new Date();
+            checkout.setDate(checkout.getDate() + 1);
+            
+            document.getElementById('checkinDate').value = checkin.toISOString().split('T')[0];
+            document.getElementById('checkoutDate').value = checkout.toISOString().split('T')[0];
+        }
+
+        // Update checkout minimum date when checkin changes
+        document.getElementById('checkinDate').addEventListener('change', function() {
+            const checkinDate = new Date(this.value);
+            const checkoutDate = new Date(checkinDate);
+            checkoutDate.setDate(checkoutDate.getDate() + 1);
+            
+            document.getElementById('checkoutDate').min = checkoutDate.toISOString().split('T')[0];
+            if (document.getElementById('checkoutDate').value <= this.value) {
+                document.getElementById('checkoutDate').value = checkoutDate.toISOString().split('T')[0];
+            }
+        });
+
+        // Display rooms
+        function displayRooms(roomsToDisplay) {
+            const container = document.getElementById('roomsContainer');
+            container.innerHTML = '';
+
+            roomsToDisplay.forEach(room => {
+                const roomCard = createRoomCard(room);
+                container.appendChild(roomCard);
+            });
+        }
+
+        // Create room card
+        function createRoomCard(room) {
+            const card = document.createElement('div');
+            card.className = 'room-card bg-white rounded-xl shadow-lg overflow-hidden';
+            
+            card.innerHTML = `
+                <div class="relative">
+                    <img src="${room.image}" alt="${room.alt}" class="w-full h-64 object-cover" onerror="this.style.background='linear-gradient(45deg, #f0f0f0, #e0e0e0)'; this.style.display='block';">
+                    <div class="absolute top-4 right-4 bg-yellow-500 text-black px-3 py-1 rounded-full font-bold">
+                        ₹${room.price}/night
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <h3 class="text-2xl font-bold mb-2 text-gray-800">${room.name}</h3>
+                    <div class="flex items-center text-gray-600 mb-4">
+                        <i class="fas fa-users mr-2"></i>
+                        <span class="mr-4">Up to ${room.capacity} guests</span>
+                        <i class="fas fa-expand-arrows-alt mr-2"></i>
+                        <span>${room.size}</span>
+                    </div>
+                    
+                    <p class="text-gray-600 mb-4">${room.description}</p>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-semibold text-gray-800 mb-2">Amenities:</h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${room.amenities.slice(0, 4).map(amenity => 
+                                `<span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">${amenity}</span>`
+                            ).join('')}
+                            ${room.amenities.length > 4 ? `<span class="text-green-600 text-sm">+${room.amenities.length - 4} more</span>` : ''}
+                        </div>
+                    </div>
+                    
+                    <button onclick="openBookingModal(${room.id})" class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-lg transition transform hover:scale-105">
+                        <i class="fas fa-calendar-check mr-2"></i>Book Now
+                    </button>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Search rooms
+        function searchRooms() {
+            const checkin = document.getElementById('checkinDate').value;
+            const checkout = document.getElementById('checkoutDate').value;
+            const guests = parseInt(document.getElementById('guestCount').value);
+            const roomType = document.getElementById('roomType').value;
+
+            if (!checkin || !checkout) {
+                alert('Please select check-in and check-out dates');
+                return;
+            }
+
+            if (new Date(checkout) <= new Date(checkin)) {
+                alert('Check-out date must be after check-in date');
+                return;
+            }
+
+            filteredRooms = rooms.filter(room => {
+                const capacityMatch = room.capacity >= guests;
+                const typeMatch = !roomType || room.type === roomType;
+                return capacityMatch && typeMatch;
+            });
+
+            displayRooms(filteredRooms);
+            
+            // Scroll to rooms section
+            document.getElementById('rooms').scrollIntoView({ behavior: 'smooth' });
+            
+            // Show search results message
+            const container = document.getElementById('roomsContainer');
+            if (filteredRooms.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-gray-600 mb-2">No rooms found</h3>
+                        <p class="text-gray-500">Try adjusting your search criteria</p>
+                        <button onclick="displayRooms(rooms)" class="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-2 rounded-lg transition">
+                            Show All Rooms
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Open booking modal
+        function openBookingModal(roomId) {
+            selectedRoom = rooms.find(room => room.id === roomId);
+            const modal = document.getElementById('bookingModal');
+            
+            // Calculate nights and total
+            const checkin = new Date(document.getElementById('checkinDate').value);
+            const checkout = new Date(document.getElementById('checkoutDate').value);
+            const nights = Math.ceil((checkout - checkin) / (1000 * 60 * 60 * 24));
+            const total = selectedRoom.price * nights;
+            
+            // Update booking details
+            document.getElementById('bookingDetails').innerHTML = `
+                <h4 class="font-bold text-lg mb-2">${selectedRoom.name}</h4>
+                <div class="flex justify-between mb-1">
+                    <span>Check-in:</span>
+                    <span>${checkin.toLocaleDateString()}</span>
+                </div>
+                <div class="flex justify-between mb-1">
+                    <span>Check-out:</span>
+                    <span>${checkout.toLocaleDateString()}</span>
+                </div>
+                <div class="flex justify-between mb-1">
+                    <span>Nights:</span>
+                    <span>${nights}</span>
+                </div>
+                <div class="flex justify-between mb-1">
+                    <span>Rate per night:</span>
+                    <span>₹${selectedRoom.price}</span>
+                </div>
+                <hr class="my-2">
+                <div class="flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span>₹${total}</span>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close booking modal
+        function closeBookingModal() {
+            const modal = document.getElementById('bookingModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            selectedRoom = null;
+        }
+
+        // Submit booking
+        function submitBooking(event) {
+            event.preventDefault();
+            
+            // Simulate booking process
+            const formData = new FormData(event.target);
+            
+            // Show success message
+            alert(`Booking confirmed! You will receive a confirmation SMS shortly. Booking ID: #${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
+            
+            closeBookingModal();
+            event.target.reset();
+        }
+
+        // Scroll to rooms section
+        function scrollToRooms() {
+            document.getElementById('rooms').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            // Mobile menu implementation would go here
+            alert('Mobile menu would be implemented here');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('bookingModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBookingModal();
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
